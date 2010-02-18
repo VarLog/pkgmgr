@@ -58,7 +58,7 @@ static void del_options(int argc, char** argv) {
     if(!del_pkg(pkg))
       printf("Done!\n");
     else
-      printf("Delete Function returned an error!!\n");
+      fprintf(stderr, "Delete function returned an error!!\n");
   }
   else
     printf("ABORT! This package is NOT installed.\n");
@@ -67,7 +67,8 @@ static void del_options(int argc, char** argv) {
 
 static void install_options(int argc, char** argv) {
   int opt;
-  char *opt_str = "v:n:d:l:";
+  char *opt_str = "v:n:d:l:f:";
+  char *filename = NULL;
   pkg_t* pkg = (pkg_t*)xcalloc(1, sizeof(pkg_t)); 
   pkg_t* gpkg;  // Pointer for get_pkgs()
 
@@ -76,6 +77,7 @@ static void install_options(int argc, char** argv) {
       { "version", required_argument, NULL, 'v' },
       { "descr", required_argument, NULL, 'd' },
       { "license", required_argument, NULL, 'l' },
+      { "file", required_argument, NULL, 'f' },
       { NULL, no_argument, NULL, 0 }, };
   int option_index = 0;
   
@@ -92,17 +94,21 @@ static void install_options(int argc, char** argv) {
         break;  
       case 'l':
         pkg->license = optarg;
-        break;  
+        break;
+      case 'f':
+        filename = optarg;
+        break;
     }     
 
   gpkg = get_pkgs(pkg);   
   if(!gpkg->name) {
-    printf("Installation package:..\n"); 
+    printf("Installation package:..\n");
+    pkg->itime = get_cur_time();
     show_pkg(pkg);
-    if(!install_pkg(pkg))
+    if(!install_pkg(pkg, filename))
       printf("Done!\n");
     else
-      printf("Delete Function returned an error!!\n");  
+      printf("Install function returned an error!!\n");  
   }
   else {
     printf("ABORT! This package is ALREADY installed:\n");

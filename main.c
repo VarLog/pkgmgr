@@ -9,8 +9,6 @@
 
 #include <errno.h>
 
-#include <time.h>
-
 #include "main.h"
 #include "sqlite.h"
 #include "utils.h"
@@ -48,29 +46,29 @@ int show_pkg(pkg_t *pkg) {
   return 0;
 }
 
-int install_pkg(pkg_t *pkg) {
-  /* Get the current time 
-   * and discard \n at the end */
-  const time_t t = time(NULL);
-  char *s = ctime(&t);
-  char *p = s;
-  
-  while(*p != '\n')
-    p++;
-  *p = '\0';     
-  pkg->itime = s;
-
+int install_pkg(pkg_t *pkg, char *filename) {
   if(!pkg->name || !pkg->version) {
-    fprintf(stderr, "No name and version of package!\n");
+    fprintf(stderr, "ABORT! No name and version of package!\n");
     return 1;
   }
+  
+  if(!filename) {
+    fprintf(stderr, "ABORT! No package to install. Use -f <pkg_file>\n");
+    return 1;
+  }
+
+  if(extract_pkg(filename, "/tmp/pkgmgr")) {
+    fprintf(stderr, "Extract function returned an error\n");
+    return 1;
+  }
+
   add_pkg_to_db(DB_PATH, pkg);
   return 0;
 }
 
 int del_pkg(pkg_t *pkg) {
-  if(!pkg->name || !pkg->version) {
-    fprintf(stderr, "No name and version of package!\n");
+  if(!pkg->name) {
+    fprintf(stderr, "ABORT! No name and version of package!\n");
     return 1;
   }
   del_pkg_from_db(DB_PATH, pkg);
